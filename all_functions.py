@@ -24,7 +24,7 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth, 
                  wait_on_rate_limit=True, # wait_on_rate_limit=True necessary to avoid api limit
-                # wait_on_rate_limit_notify=True, 
+                 wait_on_rate_limit_notify=True, 
                  retry_errors=set([401, 404, 500, 502, 503, 504])
             )
 
