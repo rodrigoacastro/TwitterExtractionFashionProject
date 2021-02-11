@@ -1,0 +1,5 @@
+https://twittercommunity.com/t/503-response-status-code-problem/100828/3
+
+https://github.com/tweepy/tweepy/issues/756
+
+https://stackoverflow.com/questions/41786569/twitter-error-code-429-with-tweepy
