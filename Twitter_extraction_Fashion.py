@@ -72,8 +72,8 @@ for account in account_list:
         # comment later
         # print(f'file saved in {dir_results}',end='\n')
         
-        # updates count
-        cont += 1
+    # updates count
+    cont += 1
         
     print (f'Tweets extracted from account {account}', end='\n\n')
         
