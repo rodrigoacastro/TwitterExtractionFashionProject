@@ -5,7 +5,7 @@ import json
 # To set your environment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
 
-bearer_token = 'AAAAAAAAAAAAAAAAAAAAAMozMAEAAAAAG%2F7fdFeWiQRE2evXGjIJyFw9maA%3DNk5KArOOfSUE8HQtSvRNnrfshiUxfjuwl5bmVqM40LA3F72akz'
+bearer_token = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 def auth():
     return os.environ.get("BEARER_TOKEN")
