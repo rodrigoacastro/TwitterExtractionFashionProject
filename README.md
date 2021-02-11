@@ -3,5 +3,5 @@ Scripts for extracting tweets for a friend's Phd Project on fashion tweets and s
 
 For this process to work, you must obtain a developer license for twitter (https://developer.twitter.com/en/apply-for-access) and obtain four credentials to fill in into the credentials.csv file inside the credentials folder.
 
-# Potentially issues known to be improved
+# Potential issues to be improved
 - All files per month are created, necessarily, before the full extraction.
