@@ -79,6 +79,8 @@ for account in account_list:
         
     # back to main folder
     change_directory_to('..\\')
+    
+print("Full extraction complete.")
 
 
 
