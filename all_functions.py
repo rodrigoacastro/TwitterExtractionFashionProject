@@ -54,7 +54,7 @@ def extract_place(row):
 
 def scrape_username_tweets_by_date (username, 
                               result_type = 'recent', 
-                              max_tweets = 100, language='en',
+                              max_tweets = 2000, language='en', # scrapes up to 2000 latest tweets. For many accounts they may reach 2018 tweets.
                               since_date = '2018-01-01', until_date = '2021-01-31',
                               filename='advancedqueries-tweets.csv',
                               export_file = True,
@@ -222,7 +222,7 @@ def per_month_extraction (username,month='January',year=2020,
                             result_type = 'popular',
                             since_date = initial_day,
                             until_date = final_day, 
-                            max_tweets = 300,
+                            max_tweets = 2000,
                             filename = filename,
                             # TRY FALSE IN EXPORT FILE ARGUMENT
                             export_file = True, # IF YOU CHANGE THIS TO "export_file" to match the argument, it throws an error
