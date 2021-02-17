@@ -197,7 +197,7 @@ def per_month_extraction (username,month='January',year=2020,
 
 
     # YYYY-MM-DD
-    initial_day = create_date (year=2020, month_year=month, day='01')
+    initial_day = create_date (year=year, month_year=month, day='01')
     
     # months with 30 or 31 days
     if month in ['January', 'March', 'May', 'July', 'August', 'October', 'December']:
@@ -345,6 +345,9 @@ def create_date (year=2020, month_year="January", day="01"):
 
 ###############################################################################################
 def full_extraction (username, year, sample=False,sample_size=15):
+                    # export_full_file = True, export_individual_files = False):
+                    # replace "export_file = False" by "export_file = export_individual_files" in each extraction
+  
     september_extraction = per_month_extraction (username,month='September',year=year, 
                           sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
     # print(f'september extraction: {september_extraction}', end='\n')
