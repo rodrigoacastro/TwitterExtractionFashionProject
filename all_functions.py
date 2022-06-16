@@ -7,6 +7,9 @@ import time
 import os
 from os import path
 import calendar
+import datetime
+import pytz
+
 
 # Authentication in Twitter
 
@@ -24,8 +27,7 @@ auth.set_access_token(access_token, access_token_secret)
 
 api = tweepy.API(auth, 
                  wait_on_rate_limit=True, # wait_on_rate_limit=True necessary to avoid api limit
-                 wait_on_rate_limit_notify=True, 
-                 retry_errors=set([401, 404, 500, 502, 503, 504])
+                wait_on_rate_limit_notify=True, retry_errors=set([401, 404, 500, 502, 503, 504])
             )
 
 
@@ -54,7 +56,7 @@ def extract_place(row):
 
 def scrape_username_tweets_by_date (username, 
                               result_type = 'recent', 
-                              max_tweets = 2000, language='en', # scrapes up to 2000 latest tweets. For many accounts they may reach 2018 tweets.
+                              max_tweets = 2000, language='en',
                               since_date = '2018-01-01', until_date = '2021-01-31',
                               filename='advancedqueries-tweets.csv',
                               export_file = True,
@@ -95,15 +97,18 @@ def scrape_username_tweets_by_date (username,
     
     # defining initial and final twitter date to filter
     
-    import datetime
+    #import datetime
 
-    # convert to date
-    startDate = datetime.datetime.strptime(since_date, '%Y-%m-%d').date()
-    endDate = datetime.datetime.strptime(until_date, '%Y-%m-%d').date()
+    # convert string to date
+    startDate = datetime.datetime.strptime(since_date, '%Y-%m-%d')#.date()
+    endDate = datetime.datetime.strptime(until_date, '%Y-%m-%d')#.date()
     
-    # convert to datetime
-    startDate_datetime = datetime.datetime(startDate.year, startDate.month, startDate.day)
-    endDate_datetime = datetime.datetime(endDate.year, endDate.month, endDate.day)
+    # convert date to datetime
+    #startDate_datetime = datetime.datetime(startDate.year, startDate.month, startDate.day)
+    #endDate_datetime = datetime.datetime(endDate.year, endDate.month, endDate.day)
+    startDate_datetime = datetime.datetime.strptime(since_date, '%Y-%m-%d')#.date()
+    endDate_datetime = datetime.datetime.strptime(until_date, '%Y-%m-%d')#.date()
+    
     #print (f"start date obj = {since_date_obj}")
     #print (f"end date obj = {until_date_obj}")
    
@@ -112,18 +117,27 @@ def scrape_username_tweets_by_date (username,
     #print(f'End date: {endDate}')
     
     # convert datetime to aware to compare (dates must be either 'naive' or 'aware' to be compared)
-    import pytz
-    utc = pytz.UTC
+    #import pytz
+    # utc = pytz.UTC
 
-    startDate_datetime = utc.localize(startDate_datetime) 
-    endDate_datetime = utc.localize(endDate_datetime)    
+    # startDate_datetime = utc.localize(startDate_datetime) 
+    # endDate_datetime = utc.localize(endDate_datetime)  
+    
      
     # filtering tweets by date
     filtered_tweets = []
     # tmpTweets = api.user_timeline(username)
     for tweet in tweets:
-        if tweet.created_at <= endDate_datetime and tweet.created_at >= startDate_datetime:
+        # converting from format "2021-02-16 16:05:20+00:00" to "2021-02-16 16:05:20"
+        tweet_creation_datetime = datetime.datetime.strptime(str(tweet.created_at)[0:19], '%Y-%m-%d %H:%M:%S')
+
+        #print(f"tweet.created_at: {tweet.created_at}")
+        #if tweet.created_at >= startDate_datetime and tweet.created_at <= endDate_datetime:
+        #    filtered_tweets.append(tweet)
+        if tweet_creation_datetime >= startDate_datetime and tweet_creation_datetime <= endDate_datetime:
             filtered_tweets.append(tweet)
+            
+            
     '''
     while (tweets[-1].created_at > startDate):
         tweets = api.user_timeline(username, max_id = tweets[-1].id)
@@ -158,20 +172,26 @@ def scrape_username_tweets_by_date (username,
     # create filename
     full_csv_filename = f"{filename}.csv"
     
-    if export_file == True and filename_type == 'csv':
+    if export_file == True: #and filename_type == 'csv':
         try:
             tweets_df.to_csv(full_csv_filename, sep=';', index = False)
             
             print( f"file '{full_csv_filename}' created successfully")
             
-            return (tweets_df)
+            # return (tweets_df)
         # these commands on the except are important if the function is to be used separately or for testing it
         # otherwise, we can use 'pass'
         except:
-            pass
+            print( f"file '{full_csv_filename}' was not created successfully")
+            #pass
             #full_csv_filename = f"{filename}.csv"
             # print( f"file '{full_csv_filename}' could not be created")
-            
+    elif export_file == False:
+        print(f"file '{full_csv_filename}' was not exported")
+    else:
+        print("export_file must be either True or False")
+    
+    return (tweets_df)
     
 ##########################################################
 
@@ -188,11 +208,34 @@ def save_dataframe_as_csv_file (dataframe, filename = "sampled_file.csv", separa
     dataframe.to_csv(filename, sep=separator, index=index)
 ##################################################################################
 
+##################################################################################
+
+def save_txt_by_template (username, number_followers, 
+                          number_posts, publication_date,
+                          link, post_content, filename = 'myfile.txt',
+                          encoding="UTF-8"):
+    
+    import datetime
+    collection_date = str(datetime.datetime.now().date().strftime("%d/%m/%Y"))
+        
+    file = open(filename,"w+", encoding= encoding) 
+
+    file.write(f"<Twitter {username}\n\n") 
+    file.write(f"Twitter link: https://twitter.com/{username}/\n\n")
+    file.write(f"{number_followers} followers\n")
+    file.write(f"{number_posts} posts\n\n")
+    file.write(f"Retrieved at {collection_date}\n\n")
+    file.write(f"Published at {publication_date}\n\n")
+    file.write(f"Direct link: {link}\n\n")
+    file.write(f"Post:> \n\n{post_content}")
+
+    file.close() #to change file access modes
+##################################################################################
 
 # try to automate extraction per month using function
 
 ##################################################################################
-def per_month_extraction (username,month='January',year=2020, 
+def per_month_extraction (username,month='January',year=2020, result_type = 'popular',
                           sample=False,sample_size=15, export_file = True, filename_type = 'csv'): 
 
 
@@ -211,7 +254,7 @@ def per_month_extraction (username,month='January',year=2020,
     else:
         last_day = '30'
         
-    final_day = create_date (year=2020, month_year=month, day=last_day)
+    final_day = create_date (year=year, month_year=month, day=last_day)
     
     filename = f"{username}_{month}{year}_popularTweets"
 
@@ -219,13 +262,12 @@ def per_month_extraction (username,month='January',year=2020,
     tweets = scrape_username_tweets_by_date (username=username,
                             language = 'en',
                             #search_key = 'tip',
-                            result_type = 'popular',
+                            result_type = result_type,
                             since_date = initial_day,
                             until_date = final_day, 
                             max_tweets = 2000,
                             filename = filename,
-                            # TRY FALSE IN EXPORT FILE ARGUMENT
-                            export_file = True, # IF YOU CHANGE THIS TO "export_file" to match the argument, it throws an error
+                            export_file = export_file,
                             filename_type = filename_type)
     
     try:                         
@@ -344,42 +386,148 @@ def create_date (year=2020, month_year="January", day="01"):
 
 
 ###############################################################################################
-def full_extraction (username, year, sample=False,sample_size=15):
-                    # export_full_file = True, export_individual_files = False):
-                    # replace "export_file = False" by "export_file = export_individual_files" in each extraction
-  
-    september_extraction = per_month_extraction (username,month='September',year=year, 
-                          sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
-    # print(f'september extraction: {september_extraction}', end='\n')
-
-    october_extraction = per_month_extraction (username,month='October',year=year, 
-                          sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
-    # print(f'october extraction: {october_extraction}', end='\n')
-
-    december_extraction = per_month_extraction (username,month='December',year=year, 
-                          sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
-    # print(f'december extraction: {december_extraction}', end='\n')
-
-    january_extraction = per_month_extraction (username,month='January',year=year, 
-                          sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
+def full_extraction (username, year, sample=False,sample_size=15):#, 
+                     #export_full_file = True, export_individual_files = False):
     
+    september_extraction = per_month_extraction (username,month='September',year=year, 
+                          sample=sample,sample_size=sample_size, 
+                          #export_file = export_individual_files,
+                          filename_type = 'csv')
+    # print(f'september extraction: {september_extraction}', end='\n')
+    # print(september_extraction, end = '\n\n')
+    #if september_extraction is None:
+        # print('It is None')
+    october_extraction = per_month_extraction (username,month='October',year=year, 
+                          sample=sample,sample_size=sample_size, 
+                          #export_file = export_individual_files, 
+                          filename_type = 'csv')
+    # print(f'october extraction: {october_extraction}', end='\n')
+    #print(october_extraction, end = '\n\n')
+    #if october_extraction is None:
+        # print('It is None')
+    december_extraction = per_month_extraction (username,month='December',year=year, 
+                          sample=sample,sample_size=sample_size, 
+                          #export_file = export_individual_files, 
+                          filename_type = 'csv')
+    # print(f'december extraction: {december_extraction}', end='\n')
+    #print(december_extraction, end = '\n\n')
+    #if december_extraction is None:
+        # print('It is None')
+    january_extraction = per_month_extraction (username,month='January',year=year, 
+                          sample=sample,sample_size=sample_size, 
+                          #export_file = export_individual_files, 
+                          filename_type = 'csv')
+    #print(january_extraction, end = '\n\n')
+    #if january_extraction is None:
+        # print('It is None')
     # print(f'january extraction: {january_extraction}', end='\n')
     
     february_extraction = per_month_extraction (username,month='February',year=year, 
-                          sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
+                          sample=sample,sample_size=sample_size, 
+                          #export_file = export_individual_files, 
+                          filename_type = 'csv')
+    # print(february_extraction, end = '\n\n')
     
+    #if february_extraction is None:
+    #    print('It is None')
+
     # print(f'february extraction: {february_extraction}', end='\n')
     
     march_extraction = per_month_extraction (username,month='March',year=year, 
-                          sample=sample,sample_size=sample_size, export_file = False, filename_type = 'csv')
+                          sample=sample,sample_size=sample_size, 
+                          #export_file = export_individual_files, 
+                          filename_type = 'csv')
     # print(f'march extraction: {march_extraction}', end='\n')
+    #print(march_extraction, end = '\n\n')
+    #if march_extraction is None:
+    #    print('It is None')
+
+    #filenames = ['september_extraction', 'october_extraction', 'december_extraction',
+    #                             'january_extraction', 'february_extraction', 'march_extraction']
     
-    try: 
-        full_extractions = pd.concat([september_extraction, october_extraction, december_extraction,
-                                 january_extraction, february_extraction, march_extraction], axis=0)
-        return(full_extractions)
-    except ValueError:
-        pass
+    # create list of dataframes
+    #all_month_extractions = []
+    #all_month_extractions.extend(value for name, value in locals().items() if name.endswith('extraction'))
+    
+    #all_month_extractions = [september_extraction, october_extraction, december_extraction,
+    #                                    january_extraction, february_extraction, march_extraction]
+    #try:
+    
+    #print(f"all month extrations: {all_month_extractions}", end="\n\n")
+    '''
+    unified_df = pd.DataFrame(columns=all_month_extractions[0].columns)
+    if export_full_file == True:
+        
+        for extracted_file in all_month_extractions: # for each file
+            for row in extracted_file.index: # for each row
+                each_row = extracted_file.iloc(0)
+                unified_df.append(each_row)
+                
+        print(unified_df)
+    '''    
+        
+    '''    
+        from functools import reduce
+        unified_df = reduce(lambda df1, df2: september_extraction.merge(october_extraction, "outer"), 
+                            all_month_extractions)
+        
+        unified_df = reduce(lambda df1, df2: unified_df.merge(december_extraction, "outer"), 
+                            all_month_extractions)
+        
+        unified_df = reduce(lambda df1, df2: unified_df.merge(january_extraction, "outer"), 
+                            all_month_extractions)
+        
+        unified_df = reduce(lambda df1, df2: unified_df.merge(february_extraction, "outer"), 
+                            all_month_extractions)
+        
+        unified_df = reduce(lambda df1, df2: unified_df.merge(march_extraction, "outer"), 
+                            all_month_extractions)
+        
+        '''
+    '''
+        
+        #try:
+    
+            # using list comprehension to remove None values in list 
+        valid_month_extractions = [i for i in all_month_extractions if i is not None] #len(i) >= 0] 
+        #print(valid_month_extractions)    
+            # concatenate valid
+            #try:
+        full_extractions = pd.concat(all_month_extractions, axis=0, ignore_index=True)
+        '''
+    '''
+        full_extractions = pd.concat([september_extraction, october_extraction,
+                                          december_extraction, january_extraction, 
+                                          february_extraction, march_extraction],
+                                          axis=0, ignore_index=True)
+        
+        
+            #print(f"full extractions: {full_extractions}") 
+        '''    
+        #return(unified_df)   
+        #return(full_extractions)
+        #except: ValueError: All objects passed were None
+        #    pass
+    '''    
+    elif export_full_file == False:
+        
+        if export_individual_files == False:
+            print("Full file was not exported. Individual extractions were not exported", end = "\n\n")        
+        elif export_individual_files ==True:
+            print("Full file was not exported. Individual extractions were exported", end = "\n\n")        
+        else:
+            print("export_individual_files must be either True or False")
+    '''        
+            #return (all_month_extractions)
+    #except:
+    #    print("It was not possible to concatenate all empty dataframes.")
+    # ORIGINAL 
+    #full_extractions = pd.concat([september_extraction, october_extraction, december_extraction,
+    #
+    # january_extraction, february_extraction, march_extraction], axis=0)
+    
+    #except ValueError:
+    #    pass
     
     
 ###############################################################################################
