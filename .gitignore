@@ -1,0 +1,10 @@
+# credentials from twitter in csv format
+#credentials/credentials.csv
+
+# deprecated files
+deprecated
+deprecated/
+
+# some extractions
+extracted_tweets
+extracted_tweets/
